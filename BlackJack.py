@@ -51,13 +51,13 @@ class Card:
 c = Card()
 
 class Scores:
+    ace_dict = {}
     score_dict = {}
     MAX_SCORES = 21
 
     @classmethod
     def compare(cls, p):
-        if cls.score_dict[p] == cls.MAX_SCORES:
-            print("21 score!!!!!")
+        return p <= cls.MAX_SCORES
 
     def convert(self, m):
         self.m = m
@@ -91,11 +91,24 @@ class Scores:
     def adding_to_dict(self, key):
         if key in self.score_dict:
             self.score_dict[key] += sc.m
+            if sc.m == 11:
+                if key in self.ace_dict:
+                    self.ace_dict[key] += sc.m
+                else:
+                    self.ace_dict[key] = sc.m
         else:
             self.score_dict[key] = sc.m
 
+    def overscores_with_ace(self, key):
+        if key in self.ace_dict and self.ace_dict[key] > 0:
+            if not self.compare(sc.score_dict[key]):
+                self.ace_dict[key] -= 11
+                self.score_dict[key] -= 10
+                print(f"DEALER SAY: {key}'s ace is converted from 11 to 1 score, otherwise {key} would have lost")
+
     def score_table(self, key):
         print(f"Your scores: {self.score_dict[key]}")
+
 
 
 sc = Scores()
@@ -123,12 +136,13 @@ class Bots(Player):
     bot_names = ["John", "Jessica", "Bred", "Joe", "Samantha", "Julia"]
 
     def create_bots(self):
-        print(f"My name is {self.name} and I want to invite {N} players more!")
+        print(f"{self.name.upper()} SAYS: I want to invite {N} player(s) more!")
         print("DEALER SAYS:", self.name, ", here your cards")
         c.give_card()
         sc.adding_to_dict(self.name)
         c.give_card()
         sc.adding_to_dict(self.name)
+        sc.overscores_with_ace(self.name)
         sc.score_table(self.name)
         k = 0
         while len(players_in_game) < N:
@@ -140,6 +154,7 @@ class Bots(Player):
                 for f in range(2):
                     c.give_card()
                     sc.adding_to_dict(i)
+                    sc.overscores_with_ace(i)
                 sc.score_table(i)
                 k += 1
 
@@ -151,6 +166,9 @@ class Dealer:
 
     def lose(self):
         print("DEALER SAYS: Ohhhh, I have more than 21 scores. PLAYERS HAVE JUST WON")
+
+    def pl_lose(self):
+        print("DEALER SAYS: You seem to have more scores than permitted! YOU LOSE!")
 
     def win(self):
         print("DEALER SAYS: You have won! You have more scores than me!")
@@ -195,7 +213,10 @@ def pl_on():
                     dl.hit_card()
                     c.give_card()
                     sc.adding_to_dict(pl.name)
+                    sc.overscores_with_ace(pl.name)
                     sc.score_table(pl.name)
+                    if not Scores.compare(sc.score_dict[pl.name]):
+                        dl.pl_lose()
                 case "2":
                     pl.stand()
                     dl.stand_cards()
@@ -214,7 +235,10 @@ def pl_on():
                 dl.hit_card()
                 c.give_card()
                 sc.adding_to_dict(bot_obj[i-1].name)
+                sc.overscores_with_ace(bot_obj[i-1].name)
                 sc.score_table(bot_obj[i-1].name)
+                if not Scores.compare(sc.score_dict[bot_obj[i-1].name]):
+                    dl.pl_lose()
             case 2:
                 bot_obj[i-1].stand()
                 dl.stand_cards()
@@ -232,6 +256,9 @@ def pl_on():
             dl.anouncment()
             c.give_card()
             sc.adding_to_dict("DEALER")
+            sc.overscores_with_ace("DEALER")
+            if not Scores.compare(sc.score_dict["DEALER"]):
+                dl.lose()
         case _:
             print("DEALER SAYS: I STAND!")
 
