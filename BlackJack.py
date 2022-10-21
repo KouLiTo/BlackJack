@@ -1,4 +1,5 @@
 import random
+import sys
 
 players_in_game = []
 your_name = input("Enter your name: ")
@@ -179,25 +180,31 @@ class Dealer:
         print("DEALER SAYS: NOW I'M TAKING ONE CARD MORE")
 
     def lose(self):
-        print("DEALER SAYS: Ohhhh, I have more than 21 scores. PLAYERS HAVE JUST WON")
+        print("DEALER SAYS: Ohhhh, I have more than 21 scores. PLAYERS THAT ARE STILL IN THE GAME HAVE JUST WON")
+        if len(list(set(bot_obj).difference(set(bot_to_del)))) != 0:
+            for j in list(set(bot_obj).difference(set(bot_to_del))):
+                print(f"{j.name} has won!", end="")
+        if len(pl_to_del) != 0:
+            print(f"{pl_to_del[0].name} has won!")
 
-    def pl_lose(self):
-        print("DEALER SAYS: You seem to have more scores than permitted! YOU LOSE!")
+    def pl_lose(self, pl_name):
+        self.pl_name = pl_name
+        print(f"DEALER SAYS: {self.pl_name}, YOU seem to have more scores than permitted! YOU LOSE!")
 
     def win(self):
         print("DEALER SAYS: You have won! You have more scores than me!")
 
     def double_bet(self):
-        print("DEALER SAYS: Done! Your bet is doubled")
+        print("DEALER SAYS: Done! Your bet is doubled. You received one more card! You can not hit anymore")
 
     def hit_card(self):
-        print("DEALER SAYS: Done! You just received one more card! You cannot hit anymore")
+        print("DEALER SAYS: Done! You just received one more card!")
 
     def surrender_pl(self):
         print("DEALER SAYS: I wish you would continue. Next time you'll have luck on your side")
 
     def stand_cards(self):
-        print("DEALER SAYS: Okay. You let yourself with your cards")
+        print("DEALER SAYS: Okay. You keep sitting with your cards")
 
 
 dealername = input("DEALER SAYS: Should I say my name to you? Say 'yes' if I should or anything else if I should not  ")
@@ -217,15 +224,17 @@ print("DEALERS SAYS: I TAKE TWO CARDS - ONE HIDDEN AND ANOTHER ONE IS OPEN ON TH
 c.hidden_card()
 c.give_card()
 sc.adding_to_dict("DEALER")
+sc.overscores_with_ace("DEALER")
+
 
 
 def pl_on():
     for i in range(len(bot_obj)):
         if i == 0:
             print("DEALER SAYS: Say your words!")
-            print(""""                                   OPTIONS
+            print("""                                       OPTIONS
                     1 - hit    2 - stand    3 - double    4 - surrender""")
-            option = input(f"Type your option, {pl.name}> ")
+            option = input(f"Type your option, {pl.name} > ")
             match option:
                 case "1":
                     pl.hit()
@@ -235,7 +244,8 @@ def pl_on():
                     sc.overscores_with_ace(pl.name)
                     sc.score_table(pl.name)
                     if not Scores.compare(sc.score_dict[pl.name]):
-                        dl.pl_lose()
+                        dl.pl_lose(pl.name)
+                        pl_to_del.pop(0)
                 case "2":
                     pl.stand()
                     dl.stand_cards()
@@ -257,7 +267,8 @@ def pl_on():
                 sc.overscores_with_ace(bot_obj[i-1].name)
                 sc.score_table(bot_obj[i-1].name)
                 if not Scores.compare(sc.score_dict[bot_obj[i-1].name]):
-                    dl.pl_lose()
+                    dl.pl_lose(bot_obj[i-1].name)
+                    bot_to_del.append(bot_obj[i - 1])
             case 2:
                 bot_obj[i-1].stand()
                 dl.stand_cards()
@@ -278,6 +289,8 @@ def pl_on():
             sc.overscores_with_ace("DEALER")
             if not Scores.compare(sc.score_dict["DEALER"]):
                 dl.lose()
+                print("GAME OVER!")
+                sys.exit()
         case _:
             print("DEALER SAYS: I STAND!")
 
@@ -288,7 +301,7 @@ def pl_on():
 
 
 def pl_off():
-    print("DEALER SAYS: Say your words!")
+    print("DEALER SAYS: LADIES AND GENTELMEN! Say your words!")
     for i in range(len(bot_obj)):
         chosen_one = random.randrange(1, 5)
         match chosen_one:
@@ -300,7 +313,8 @@ def pl_off():
                 sc.overscores_with_ace(bot_obj[i].name)
                 sc.score_table(bot_obj[i].name)
                 if not Scores.compare(sc.score_dict[bot_obj[i].name]):
-                    dl.pl_lose()
+                    dl.pl_lose(bot_obj[i].name)
+                    bot_to_del.append(bot_obj[i])
             case 2:
                 bot_obj[i].stand()
                 dl.stand_cards()
@@ -321,6 +335,8 @@ def pl_off():
             sc.overscores_with_ace("DEALER")
             if not Scores.compare(sc.score_dict["DEALER"]):
                 dl.lose()
+                print("GAME OVER!")
+                sys.exit()
         case _:
             print("DEALER SAYS: I STAND!")
 
@@ -333,9 +349,13 @@ def game_cycle():
     if len(pl_to_del) != 0:
         pl_on()
     else:
+        if len(bot_obj) == 0:
+            print("NOBODY IN GAME! DEALER HAS WON! GAME OVER")
+            sys.exit()
         pl_off()
 
-game_cycle()
-game_cycle()
-print(sc.score_dict)
+
+while True:
+    game_cycle()
+
 
