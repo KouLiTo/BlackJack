@@ -159,7 +159,21 @@ class Bots(Player):
                 k += 1
 
 
+class DealerName:
+    def __init__(self, d_name1):
+        self.d_name1 = d_name1
+
+    def __str__(self):
+        name_of_dealer = ["I", "am", "your", "Dealer", "today", "and", "my", "name", "is", self.d_name1]
+        return " ".join(name_of_dealer)
+
+d_name_ = DealerName("Frank")
+
+
+
 class Dealer:
+    def __init__(self, d_name_=None):
+        self.d_name_ = d_name_
 
     def anouncment(self):
         print("DEALER SAYS: NOW I'M TAKING ONE CARD MORE")
@@ -186,6 +200,11 @@ class Dealer:
         print("DEALER SAYS: Okay. You let yourself with your cards")
 
 
+dealername = input("DEALER SAYS: Should I say my name to you? Say 'yes' if I should or anything else if I should not  ")
+
+if dealername == "yes":    # here I used composition due to a requirement of the project, its usage is not obligatory
+    dl1 = Dealer(d_name_)
+    print(dl1.d_name_)
 
 dl = Dealer()
 pl = Player(your_name)
@@ -278,7 +297,10 @@ def pl_off():
                 dl.hit_card()
                 c.give_card()
                 sc.adding_to_dict(bot_obj[i].name)
+                sc.overscores_with_ace(bot_obj[i].name)
                 sc.score_table(bot_obj[i].name)
+                if not Scores.compare(sc.score_dict[bot_obj[i].name]):
+                    dl.pl_lose()
             case 2:
                 bot_obj[i].stand()
                 dl.stand_cards()
@@ -290,15 +312,17 @@ def pl_off():
                 bot_obj[i].surrender()
                 bot_to_del.append(bot_obj[i])
                 dl.surrender_pl()
-        if i == len(bot_obj):
-            dealers_choice = random.randrange(1, 3)
-            match dealers_choice:
-                case 1:
-                    dl.anouncment()
-                    c.give_card()
-                    sc.adding_to_dict("DEALER")
-                case _:
-                    print("DEALER SAYS: I STAND!")
+    dealers_choice = random.randrange(1, 3)
+    match dealers_choice:
+        case 1:
+            dl.anouncment()
+            c.give_card()
+            sc.adding_to_dict("DEALER")
+            sc.overscores_with_ace("DEALER")
+            if not Scores.compare(sc.score_dict["DEALER"]):
+                dl.lose()
+        case _:
+            print("DEALER SAYS: I STAND!")
 
     for el in bot_to_del:
         if el in bot_obj:
