@@ -14,12 +14,6 @@ class Card:
              "♧", "♢"
              ]
 
-
-    def __init__(self):
-        pass
-
-
-
     def build_card(self, arg):
         for i in range(5):
             if i == 0 or i == 4:
