@@ -119,7 +119,6 @@ class Player:
     def stand(self):
         print(self.name.upper(), "SAYS" + ":" + " " + "That's enough, thanks")
 
-
     def double(self):
         print(self.name.upper(), "SAYS" + ":" + " " + "Double my bet")
 
@@ -139,6 +138,10 @@ class Bots(Player):
         sc.adding_to_dict(self.name)
         sc.overscores_with_ace(self.name)
         sc.score_table(self.name)
+        b.bank = [b.player, 100]
+        b.pl_bet = []
+        bet_choice = int(input("Set your bet between 1 and 100 USD: "))
+        b.set_bet(bet_choice)
         k = 0
         while len(players_in_game) < N:
             i = random.choice(self.bot_names)
@@ -153,6 +156,66 @@ class Bots(Player):
                 sc.score_table(i)
                 k += 1
 
+    @staticmethod
+    def bots_make_bets():
+        for x in bets_objs:
+            x.bank = [x.player, 100]
+            x.pl_bet = []
+            x.initial_bank()
+            b_choice = random.randint(1, 101)
+            x.set_bet(b_choice)
+
+class Bets:
+    ind = True
+    bank = []
+    pl_bet = [0]
+    def __init__(self, player):
+        self.player = player
+
+    def initial_bank(self):
+        print(f"{self.player}, your bank is {self.bank[1]} USD as total!")
+
+    def bank_account(self):
+        print(f"{self.player}'s actual bank status is {self.bank[1]} USD")
+
+    def set_bet(self, arg):
+        self.arg = arg
+        self.pl_bet.append(arg)
+        self.bank[1] -= self.arg
+        print(f"{self.player} made the bet of {arg} USD")
+        self.bank_account()
+
+    def doubling(self):
+        if self.pl_bet[0] <= self.bank[1]:
+            self.bank[1] -= self.pl_bet[0]
+            self.pl_bet[0] *= 2
+        else:
+            self.ind = False
+            print(f"DEALER SAYS: {self.player}, you don't have enough money to double. You are skipping")
+
+    def win_active(self):
+        self.bank[1] += (self.pl_bet[0] + round(self.pl_bet[0]/2./3., 1))
+        self.pl_bet.pop(0)
+        print(f"{self.player}, you won vs dealer. Now your bank is {self.bank[1]} USD")
+
+    def win_passive(self):
+        self.bank[1] += (2 * self.pl_bet[0])
+        self.pl_bet.pop(0)
+        print(f"{self.player}, you won. Now your bank is {self.bank[1]} USD")
+
+    def draw(self):
+        self.bank[1] += self.pl_bet[0]
+        self.pl_bet.pop(0)
+        print(f"{self.player}, DRAW in the game, your bet is returned, you have {self.bank[1]} USD as before")
+
+    def surrending(self):
+        self.bank[1] += (round(self.pl_bet[0] / 2, 1))
+        self.pl_bet.pop(0)
+        print(f"{self.player}, after surrending a half of the bet is returned, you have {self.bank[1]} USD in the bank")
+
+    def lose_bet(self):
+        self.pl_bet.pop(0)
+        print(f"{self.player}, you lost your bet. Your bank is {self.bank[1]} USD")
 
 class DealerName:
     def __init__(self, d_name1):
@@ -207,11 +270,14 @@ if dealername == "yes":    # here I used composition due to a requirement of the
     dl1 = Dealer(d_name_)
     print(dl1.d_name_)
 
+b = Bets(your_name)
 dl = Dealer()
 pl = Player(your_name)
 pl_to_del = [pl]
 bt = Bots(your_name)
 bt.create_bots()
+bets_objs = [Bets(x) for x in players_in_game]
+bt.bots_make_bets()
 bot_obj = [Player(x) for x in players_in_game]
 bot_to_del = []
 print("DEALERS SAYS: I TAKE TWO CARDS - ONE HIDDEN AND ANOTHER ONE IS OPEN ON THE TABLE")
@@ -246,7 +312,17 @@ def pl_on():
                     sc.score_table(pl.name)
                 case "3":
                     pl.double()
-                    dl.double_bet()
+                    b.doubling()
+                    if b.ind:
+                        dl.double_bet()
+                        b.bank_account()
+                        c.give_card()
+                        sc.adding_to_dict(pl.name)
+                        sc.overscores_with_ace(pl.name)
+                        sc.score_table(pl.name)
+                        if not Scores.compare(sc.score_dict[pl.name]):
+                            dl.pl_lose(pl.name)
+                            pl_to_del.pop(0)
                 case _:
                     pl.surrender()
                     dl.surrender_pl()
@@ -269,7 +345,17 @@ def pl_on():
                 sc.score_table(bot_obj[i-1].name)
             case 3:
                 bot_obj[i-1].double()
-                dl.double_bet()
+                bets_objs[i-1].doubling()
+                if bets_objs[i-1].ind:
+                    dl.double_bet()
+                    bets_objs[i-1].bank_account()
+                    c.give_card()
+                    sc.adding_to_dict(bot_obj[i-1].name)
+                    sc.overscores_with_ace(bot_obj[i-1].name)
+                    sc.score_table(bot_obj[i-1].name)
+                    if not Scores.compare(sc.score_dict[bot_obj[i-1].name]):
+                        dl.pl_lose(bot_obj[i-1].name)
+                        bot_to_del.append(bot_obj[i - 1])
             case _:
                 bot_obj[i-1].surrender()
                 bot_to_del.append(bot_obj[i-1])
@@ -315,7 +401,17 @@ def pl_off():
                 sc.score_table(bot_obj[i].name)
             case 3:
                 bot_obj[i].double()
-                dl.double_bet()
+                bets_objs[i].doubling()
+                if bets_objs[i].ind:
+                    dl.double_bet()
+                    bets_objs[i].bank_account()
+                    c.give_card()
+                    sc.adding_to_dict(bot_obj[i].name)
+                    sc.overscores_with_ace(bot_obj[i].name)
+                    sc.score_table(bot_obj[i].name)
+                    if not Scores.compare(sc.score_dict[bot_obj[i].name]):
+                        dl.pl_lose(bot_obj[i].name)
+                        bot_to_del.append(bot_obj[i])
             case _:
                 bot_obj[i].surrender()
                 bot_to_del.append(bot_obj[i])
