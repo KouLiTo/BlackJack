@@ -13,7 +13,6 @@ def type_names():
 players_in_game = []
 your_name = type_names()
 
-
 def type_n():
     try:
         n = int(input(f"{your_name}, how many players would you play with? "))
@@ -54,8 +53,6 @@ N = type_n()
 
 
 class Game:
-
-
     @staticmethod
     def out_of_cards_pl():
         if (sc.score_dict[pl.name] > sc.score_dict["DEALER"]) and sc.compare(pl.name):
@@ -83,8 +80,6 @@ class Game:
             game_cycle()
 
 
-
-
 class Card:
     suits = [*["2", "3", "4",
                "5", "6", "7",
@@ -92,8 +87,6 @@ class Card:
                "J", "D"] * 4, "♤", "♡",
              "♧", "♢"
              ]
-
-
     def build_card(self, arg):
         for i in range(5):
             if i == 0 or i == 4:
@@ -126,7 +119,9 @@ class Card:
         sc.adding_to_dict("DEALER")
         self.suits.remove(dealer_card)
 
+
 c = Card()
+
 
 class Scores:
     ace_dict = {}
@@ -192,11 +187,10 @@ class Scores:
         print(f"Your scores: {self.score_dict[key]}")
 
 
-
 sc = Scores()
 
-class Player:
 
+class Player:
     def __init__(self, name):
         self.name = name
 
@@ -301,6 +295,7 @@ class Bets:
     def lose_bet(self):
         print(f"{self.player}, you lost your bet. Your bank is {self.bank[1]} USD")
 
+
 class DealerName:
     def __init__(self, d_name1):
         self.d_name1 = d_name1
@@ -308,6 +303,7 @@ class DealerName:
     def __str__(self):
         name_of_dealer = ["I", "am", "your", "Dealer", "today", "and", "my", "name", "is", self.d_name1]
         return " ".join(name_of_dealer)
+
 
 d_name_ = DealerName("Frank")
 
@@ -377,7 +373,6 @@ c.hidden_card()
 c.give_card()
 sc.adding_to_dict("DEALER")
 sc.overscores_with_ace("DEALER")
-
 
 
 def pl_on():
@@ -490,7 +485,6 @@ def pl_on():
     for el in bot_to_del:
         if el in bot_obj:
             bot_obj.remove(el)
-
 
 
 def pl_off():
