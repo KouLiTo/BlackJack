@@ -349,6 +349,8 @@ def pl_on():
                 case _:
                     pl.surrender()
                     dl.surrender_pl()
+                    b.surrending()
+                    b.bank_account()
                     pl_to_del.pop(0)
         chosen_one = random.randrange(1, 5)
         match chosen_one:
@@ -385,6 +387,8 @@ def pl_on():
                 bot_obj[i-1].surrender()
                 bot_to_del.append(bot_obj[i-1])
                 dl.surrender_pl()
+                bets_objs[i - 1].surrending()
+                bets_objs[i - 1].bank_account()
     dealers_choice = random.randrange(1, 3)
     match dealers_choice:
         case 1:
@@ -447,6 +451,8 @@ def pl_off():
                 bot_obj[i].surrender()
                 bot_to_del.append(bot_obj[i])
                 dl.surrender_pl()
+                bets_objs[i].surrending()
+                bets_objs[i].bank_account()
     dealers_choice = random.randrange(1, 3)
     match dealers_choice:
         case 1:
