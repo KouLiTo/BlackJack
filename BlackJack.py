@@ -54,6 +54,10 @@ class Scores:
     def compare(cls, p):
         return p <= cls.MAX_SCORES
 
+    @classmethod
+    def compare_start(cls, p):
+        return p == cls.MAX_SCORES
+
     def convert(self, m):
         self.m = m
         if self.m == "2":
@@ -131,6 +135,7 @@ class Bots(Player):
 
     def create_bots(self):
         print(f"{self.name.upper()} SAYS: I want to invite {N} player(s) more!")
+        bet_choice = int(input("Set your bet between 1 and 100 USD: "))
         print("DEALER SAYS:", self.name, ", here your cards")
         c.give_card()
         sc.adding_to_dict(self.name)
@@ -140,8 +145,11 @@ class Bots(Player):
         sc.score_table(self.name)
         b.bank = [b.player, 100]
         b.pl_bet = []
-        bet_choice = int(input("Set your bet between 1 and 100 USD: "))
         b.set_bet(bet_choice)
+        if Scores.compare_start(sc.score_dict[pl.name]):
+            b.win_active()
+            dl.blackjack()
+            pl_to_del.pop(0)
         k = 0
         while len(players_in_game) < N:
             i = random.choice(self.bot_names)
@@ -165,7 +173,9 @@ class Bots(Player):
             b_choice = random.randint(1, 101)
             x.set_bet(b_choice)
 
+
 class Bets:
+    count = 0
     ind = True
     bank = []
     pl_bet = [0]
@@ -191,10 +201,9 @@ class Bets:
             self.pl_bet[0] *= 2
         else:
             self.ind = False
-            print(f"DEALER SAYS: {self.player}, you don't have enough money to double. You are skipping")
 
     def win_active(self):
-        self.bank[1] += (self.pl_bet[0] + round(self.pl_bet[0]/2./3., 1))
+        self.bank[1] += (self.pl_bet[0] + round(self.pl_bet[0]*0.7, 1))
         self.pl_bet.pop(0)
         print(f"{self.player}, you won vs dealer. Now your bank is {self.bank[1]} USD")
 
@@ -251,6 +260,9 @@ class Dealer:
     def win(self):
         print("DEALER SAYS: You have won! You have more scores than me!")
 
+    def blackjack(self):
+        print("DEALER SAYS: YOU HIT THE BLACKJACK!!! GRATULATION!!! YOU HAVE WON!!!")
+
     def double_bet(self):
         print("DEALER SAYS: Done! Your bet is doubled. You received one more card! You can not hit anymore")
 
@@ -271,12 +283,15 @@ if dealername == "yes":    # here I used composition due to a requirement of the
     print(dl1.d_name_)
 
 b = Bets(your_name)
+b.count = 0
 dl = Dealer()
 pl = Player(your_name)
 pl_to_del = [pl]
 bt = Bots(your_name)
 bt.create_bots()
 bets_objs = [Bets(x) for x in players_in_game]
+for i in bets_objs:
+    i.count = 0
 bt.bots_make_bets()
 bot_obj = [Player(x) for x in players_in_game]
 bot_to_del = []
@@ -291,7 +306,11 @@ sc.overscores_with_ace("DEALER")
 def pl_on():
     for i in range(len(bot_obj)):
         if i == 0:
-            print("DEALER SAYS: Say your words!")
+            print("""
+
+                    DEALER SAYS: Say your word!
+
+                    """)
             print("""                                       OPTIONS
                     1 - hit    2 - stand    3 - double    4 - surrender""")
             option = input(f"Type your option, {pl.name} > ")
@@ -313,16 +332,20 @@ def pl_on():
                 case "3":
                     pl.double()
                     b.doubling()
-                    if b.ind:
+                    if b.ind and b.count == 0:
                         dl.double_bet()
                         b.bank_account()
                         c.give_card()
                         sc.adding_to_dict(pl.name)
                         sc.overscores_with_ace(pl.name)
                         sc.score_table(pl.name)
+                        b.count = 1
                         if not Scores.compare(sc.score_dict[pl.name]):
                             dl.pl_lose(pl.name)
                             pl_to_del.pop(0)
+                    else:
+                        print(f"DEALER SAYS: {pl.name}, No money to double or you try more than one time. Skip!")
+
                 case _:
                     pl.surrender()
                     dl.surrender_pl()
@@ -346,7 +369,7 @@ def pl_on():
             case 3:
                 bot_obj[i-1].double()
                 bets_objs[i-1].doubling()
-                if bets_objs[i-1].ind:
+                if bets_objs[i-1].ind and bets_objs[i-1].count == 0:
                     dl.double_bet()
                     bets_objs[i-1].bank_account()
                     c.give_card()
@@ -356,6 +379,8 @@ def pl_on():
                     if not Scores.compare(sc.score_dict[bot_obj[i-1].name]):
                         dl.pl_lose(bot_obj[i-1].name)
                         bot_to_del.append(bot_obj[i - 1])
+                else:
+                    print(f"DEALER SAYS: {bot_obj[i-1].name}, No money to double or you try more than one time. Skip!")
             case _:
                 bot_obj[i-1].surrender()
                 bot_to_del.append(bot_obj[i-1])
@@ -381,7 +406,11 @@ def pl_on():
 
 
 def pl_off():
-    print("DEALER SAYS: LADIES AND GENTELMEN! Say your words!")
+    print("""
+    
+    DEALER SAYS: LADIES AND GENTELMEN! Say your words!
+    
+    """)
     for i in range(len(bot_obj)):
         chosen_one = random.randrange(1, 5)
         match chosen_one:
@@ -402,7 +431,7 @@ def pl_off():
             case 3:
                 bot_obj[i].double()
                 bets_objs[i].doubling()
-                if bets_objs[i].ind:
+                if bets_objs[i].ind and bets_objs[i].count == 0:
                     dl.double_bet()
                     bets_objs[i].bank_account()
                     c.give_card()
@@ -412,6 +441,8 @@ def pl_off():
                     if not Scores.compare(sc.score_dict[bot_obj[i].name]):
                         dl.pl_lose(bot_obj[i].name)
                         bot_to_del.append(bot_obj[i])
+                else:
+                    print(f"DEALER SAYS: {bot_obj[i].name}, No money to double or you try more than one time. Skip!")
             case _:
                 bot_obj[i].surrender()
                 bot_to_del.append(bot_obj[i])
@@ -435,8 +466,72 @@ def pl_off():
             bot_obj.remove(el)
 
 
+def pl_1vs1():
+    while True:
+        print("""
+        
+        DEALER SAYS: Say your word!
+        
+        """)
+        print("""                                       OPTIONS
+                              1 - hit    2 - stand    3 - double    4 - surrender""")
+        option = input(f"Type your option, {pl.name} > ")
+        match option:
+            case "1":
+                pl.hit()
+                dl.hit_card()
+                c.give_card()
+                sc.adding_to_dict(pl.name)
+                sc.overscores_with_ace(pl.name)
+                sc.score_table(pl.name)
+                if not Scores.compare(sc.score_dict[pl.name]):
+                    dl.pl_lose(pl.name)
+                    break
+            case "2":
+                pl.stand()
+                dl.stand_cards()
+                sc.score_table(pl.name)
+            case "3":
+                pl.double()
+                b.doubling()
+                if b.ind and b.count == 0:
+                    dl.double_bet()
+                    b.bank_account()
+                    c.give_card()
+                    sc.adding_to_dict(pl.name)
+                    sc.overscores_with_ace(pl.name)
+                    sc.score_table(pl.name)
+                    b.count = 1
+                    if not Scores.compare(sc.score_dict[pl.name]):
+                        dl.pl_lose(pl.name)
+                        sys.exit()
+                else:
+                    print(f"DEALER SAYS: {pl.name}, you can not double more than one time. Please skip")
+
+            case _:
+                pl.surrender()
+                dl.surrender_pl()
+                print("DEALER HAS WON!")
+                sys.exit()
+        dealers_choice = random.randrange(1, 3)
+        match dealers_choice:
+            case 1:
+                dl.anouncment()
+                c.give_card()
+                sc.adding_to_dict("DEALER")
+                sc.overscores_with_ace("DEALER")
+                if not Scores.compare(sc.score_dict["DEALER"]):
+                    dl.lose()
+                    print("GAME OVER!")
+                    sys.exit()
+            case _:
+                print("DEALER SAYS: I STAND!")
+
+
 def game_cycle():
-    if len(pl_to_del) != 0:
+    if len(pl_to_del) == 1 and len(bot_obj) == 0:
+        pl_1vs1()
+    elif len(pl_to_del) != 0:
         pl_on()
     else:
         if len(bot_obj) == 0:
