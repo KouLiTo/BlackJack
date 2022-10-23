@@ -2,7 +2,7 @@ import random
 import sys
 
 players_in_game = []
-your_name = input("Enter your name: ")
+your_name = input("Enter your name: ").upper()
 N = int(input(f"{your_name}, how many players would you play with? "))
 
 
@@ -148,9 +148,7 @@ class Bots(Player):
         b.set_bet(bet_choice)
         if Scores.compare_start(sc.score_dict[pl.name]):
             b.win_active()
-            dl.blackjack()
             pl_to_del.pop(0)
-        k = 0
         while len(players_in_game) < N:
             i = random.choice(self.bot_names)
             if i not in players_in_game:
@@ -162,7 +160,6 @@ class Bots(Player):
                     sc.adding_to_dict(i)
                     sc.overscores_with_ace(i)
                 sc.score_table(i)
-                k += 1
 
     @staticmethod
     def bots_make_bets():
@@ -350,7 +347,6 @@ def pl_on():
                     pl.surrender()
                     dl.surrender_pl()
                     b.surrending()
-                    b.bank_account()
                     pl_to_del.pop(0)
         chosen_one = random.randrange(1, 5)
         match chosen_one:
@@ -388,7 +384,6 @@ def pl_on():
                 bot_to_del.append(bot_obj[i-1])
                 dl.surrender_pl()
                 bets_objs[i - 1].surrending()
-                bets_objs[i - 1].bank_account()
     dealers_choice = random.randrange(1, 3)
     match dealers_choice:
         case 1:
@@ -406,7 +401,6 @@ def pl_on():
     for el in bot_to_del:
         if el in bot_obj:
             bot_obj.remove(el)
-
 
 
 def pl_off():
@@ -452,7 +446,6 @@ def pl_off():
                 bot_to_del.append(bot_obj[i])
                 dl.surrender_pl()
                 bets_objs[i].surrending()
-                bets_objs[i].bank_account()
     dealers_choice = random.randrange(1, 3)
     match dealers_choice:
         case 1:
@@ -517,6 +510,7 @@ def pl_1vs1():
             case _:
                 pl.surrender()
                 dl.surrender_pl()
+                b.surrending()
                 print("DEALER HAS WON!")
                 sys.exit()
         dealers_choice = random.randrange(1, 3)
@@ -548,5 +542,3 @@ def game_cycle():
 
 while True:
     game_cycle()
-
-
